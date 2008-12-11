@@ -24,9 +24,7 @@ module NestedAssignment
       end
     end
   
-    protected
-  
-    def self.association_names
+    def association_names
       @association_names ||= reflect_on_all_associations.map(&:name)
     end
   end
@@ -62,7 +60,11 @@ module NestedAssignment
   end
 
   def instantiated_associated
-    self.class.associations_names.collect{ |name| [self.send(name).target] }.flatten
+    self.class.association_names.collect do |name|
+      ivar = "@#{name}"
+      association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
+      association && association.target
+    end.flatten.compact
   end
 
 end
