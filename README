@@ -1,9 +1,8 @@
-NestedAssignment
-================
+= NestedAssignment
 
 An attempt at solving the model (and controller) side of nested forms. Based on thoughts pulled from http://groups.google.com/group/rubyonrails-core/browse_thread/thread/4049b4b313fa8be2, http://groups.google.com/group/rubyonrails-core/browse_thread/thread/3c61e00916c365e5/f0a19fc01d0246fc, and work on ActiveScaffold.
 
-Goals:
+== Goals:
 
 # Assigning attributes should remain in-memory. Nothing should be permanent before #save. This means avoiding some of ActiveRecord's association assignment logic such as AssociationCollection#replace.
 # Deep and thorough validation of all new and changed associated records. In order for all possible errors to be available at once, no single invalid record may halt the process.
@@ -15,5 +14,17 @@ Goals:
 and of course:
 
 # Skinny controllers. There's no footprint in the controller, actually.
+
+== Paradigm Params (cf http://gist.github.com/10793)
+
+  {
+    :task_params =>
+      {
+        '1' => { :id => '3', :name => "Foo" },
+        '2' => { :id => '5', :name => "Bar", :_delete => true}
+        '3' => { :name => "Baz" }
+      }
+  }
+
 
 Copyright (c) 2008 Lance Ivy, released under the MIT license
