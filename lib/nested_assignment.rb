@@ -1,7 +1,7 @@
 # NestedAssignment
 module NestedAssignment
   def self.included(base)
-    base.class_eval do extend ClassMethods end
+    base.class_eval { extend ClassMethods }
   end
 
   module ClassMethods
@@ -58,7 +58,7 @@ module NestedAssignment
   end
 
   def changed_associated
-    instantiated_associated.select(&:changed?
+    instantiated_associated.select(&:changed?)
   end
 
   def instantiated_associated

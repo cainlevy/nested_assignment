@@ -1,0 +1,3 @@
+nested_assignment_test:
+  adapter: sqlite3
+  database: ':memory:'

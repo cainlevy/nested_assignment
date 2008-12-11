@@ -1,0 +1,10 @@
+bob_is_free:
+  id: 1
+  name: Bob/Free
+  service_id: 1
+  user_id: 1
+sue_is_premium:
+  id: 2
+  name: Sue/Premium
+  service_id: 2
+  user_id: 2

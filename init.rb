@@ -1,1 +1,1 @@
-# Include hook code here
+ActiveRecord::Base.class_eval do include NestedAssignment end
