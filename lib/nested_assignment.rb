@@ -15,24 +15,37 @@ module NestedAssignment
     def accessible_associations(*associations)
       associations.each do |name|
       
-        define_method("#{name}_params=") do |hash|
-          assoc = self.send(name)
-          hash.values.each do |row|
+        if [:belongs_to, :has_one].include? self.reflect_on_association(name).macro
+          define_method("#{name}_params=") do |row|
+            assoc = self.send(name)
+            
             # TODO: need to bypass the replace() call inside singular associations (has_one and belongs_to). but they
             # do serve a purpose: disassociating or destroying an existing record. if that is not to happen during
             # assignment, then those records need to be collected for later disassociation (or removal, if :dependent
             # => :destroy). that would need to be part of the saving process. ALSO, this makes sense to handle while
             # deleting from plural associations. so perhaps instead of setting #_delete, i should add to a
             # disassociation hash for later.
-            record = row[:id].blank? ? assoc.build : [assoc].flatten.detect{|r| r.id == row[:id].to_i}
+            record = row[:id].blank? ? assoc.build : [assoc].detect{|r| r.id == row[:id].to_i}
             if row[:_delete]
               record._delete = true
             else
               record.attributes = row
             end
           end
+        else
+          define_method("#{name}_params=") do |hash|
+            assoc = self.send(name)
+            hash.values.each do |row|
+              record = row[:id].blank? ? assoc.build : assoc.detect{|r| r.id == row[:id].to_i}
+              if row[:_delete]
+                record._delete = true
+              else
+                record.attributes = row
+              end
+            end
+          end
         end
-        
+                
       end
     end
   

@@ -6,36 +6,30 @@ class NestedAssignmentHasOneTest < ActiveSupport::TestCase
     @avatar = avatars(:bobs_avatar)
   end
   
-  def test_updating_a_avatar
+  def test_updating_the_avatar
     @user.avatar_params = {
-      "1" => {
-        :id => @avatar.id,
-        :name => "Bobtastic"
-      }
+      :id => @avatar.id,
+      :name => "Bobtastic"
     }
     assert !@user.avatar.new_record?, "the association was not rebuilt"
     assert_equal "Bobtastic", @user.avatar.name, "the existing associated record's name has changed"
     assert_equal "mugshot", @avatar.reload.name, "the name change has not been saved"
   end
   
-  def test_assigning_a_replacement_avatar
+  def test_replacing_the_avatar
     @user.avatar_params = {
-      "1" => {
-        :name => "Bobtastic"
-      }
+      :name => "Bobtastic"
     }
     assert @user.avatar.new_record?, "the association is a new object"
     assert_equal "Bobtastic", @user.avatar.name, "the new record has the specified name"
     assert !@avatar.reload.user.nil?, "the previously associated object has not been disassociated yet"
   end
   
-  def test_assigning_a_removed_avatar
+  def test_removing_the_avatar
     @user.avatar_params = {
-      "1" => {
-        :id => @avatar.id,
-        :name => "Bobtastic",
-        :_delete => "1"
-      }
+      :id => @avatar.id,
+      :name => "Bobtastic",
+      :_delete => "1"
     }
     assert @user.avatar._delete, "the association is marked for deletion"
     assert_nothing_raised("the associated object has not been deleted yet") do @avatar.reload end
@@ -51,34 +45,28 @@ class NestedAssignmentBelongsToTest < ActiveSupport::TestCase
   
   def test_updating_the_manager
     @user.manager_params = {
-      "1" => {
-        :id => @manager.id,
-        :name => "Susan"
-      }
+      :id => @manager.id,
+      :name => "Susan"
     }
     assert !@user.manager.new_record?, "the association was not rebuilt"
     assert_equal "Susan", @user.manager.name, "the existing associated record's name has changed"
     assert_equal "Sue", @manager.reload.name, "the name change has not been saved"
   end
   
-  def test_assigning_a_replacement_manager
+  def test_replacing_the_manager
     @user.manager_params = {
-      "1" => {
-        :name => "Susan"
-      }
+      :name => "Susan"
     }
     assert @user.manager.new_record?, "the association is a new object"
     assert_equal "Susan", @user.manager.name, "the new record has the specified name"
     assert !@user.reload.manager.nil?, "the previously associated object has not been disassociated yet"
   end
   
-  def test_assigning_a_removed_manager
+  def test_removing_the_manager
     @user.manager_params = {
-      "1" => {
-        :id => @manager.id,
-        :name => "Susan",
-        :_delete => "1"
-      }
+      :id => @manager.id,
+      :name => "Susan",
+      :_delete => "1"
     }
     assert @user.manager._delete, "the association is marked for deletion"
     assert_nothing_raised("the associated object has not been deleted yet") do @manager.reload end
