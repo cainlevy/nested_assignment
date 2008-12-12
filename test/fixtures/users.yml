@@ -1,6 +1,4 @@
 bob:
   id: 1
   name: Bob
-sue:
-  id: 2
-  name: Sue
+  manager_id: 1

@@ -1,31 +1,37 @@
 ActiveRecord::Schema.define(:version => 1) do
 
-  create_table :addresses, :force => true do |t|
-    t.column :name, :string
-    t.column :addressable_id, :integer
-    t.column :addressable_type, :string
-  end
-
   create_table :users, :force => true do |t|
+    t.column :manager_id, :integer
     t.column :name, :string
   end
 
-  create_table :roles_users, :force => true, :id => false do |t|
+  create_table :avatars, :force => true do |t|
     t.column :user_id, :integer
-    t.column :role_id, :integer
-  end
-
-  create_table :services, :force => true do |t|
     t.column :name, :string
   end
 
-  create_table :subscriptions, :force => true do |t|
+  create_table :managers, :force => true do |t|
     t.column :name, :string
-    t.column :service_id, :integer
+  end
+
+  create_table :tasks, :force => true do |t|
+    t.column :user_id, :integer
+    t.column :name, :string
+  end
+
+  create_table :tags, :force => true do |t|
+    t.column :task_id, :integer
+    t.column :name, :string
+  end
+
+  create_table :groups, :force => true do |t|
+    t.column :user_id, :integer
+    t.column :name, :string
+  end
+  
+  create_table :groups_users, :force => true, :id => false do |t|
+    t.column :group_id, :integer
     t.column :user_id, :integer
   end
 
-  create_table :roles, :force => true do |t|
-    t.column :name, :string
-  end
 end

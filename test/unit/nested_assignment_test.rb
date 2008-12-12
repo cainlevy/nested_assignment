@@ -1,265 +1,231 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-require 'ruby-debug'
-
 class NestedAssignmentHasOneTest < ActiveSupport::TestCase
   def setup
     @user = users(:bob)
-    @subscription = subscriptions(:bob_is_free)
+    @avatar = avatars(:bobs_avatar)
   end
   
-  def test_updating_a_subscription
-    @user.subscription_params = {
+  def test_updating_a_avatar
+    @user.avatar_params = {
       "1" => {
-        :id => @subscription.id,
+        :id => @avatar.id,
         :name => "Bobtastic"
       }
     }
-    assert !@user.subscription.new_record?, "the association was not rebuilt"
-    assert_equal "Bobtastic", @user.subscription.name, "the existing subscription's name has changed"
-    assert_equal "Bob/Free", @subscription.reload.name, "the name change has not been saved"
+    assert !@user.avatar.new_record?, "the association was not rebuilt"
+    assert_equal "Bobtastic", @user.avatar.name, "the existing associated record's name has changed"
+    assert_equal "mugshot", @avatar.reload.name, "the name change has not been saved"
   end
   
-  def test_assigning_a_replacement_subscription
-    @user.subscription_params = {
+  def test_assigning_a_replacement_avatar
+    @user.avatar_params = {
       "1" => {
         :name => "Bobtastic"
       }
     }
-    assert @user.subscription.new_record?, "the association is a new object"
-    assert_equal "Bobtastic", @user.subscription.name, "the new record has the specified name"
-    assert !@subscription.reload.user.nil?, "the previously associated object has not been disassociated yet"
+    assert @user.avatar.new_record?, "the association is a new object"
+    assert_equal "Bobtastic", @user.avatar.name, "the new record has the specified name"
+    assert !@avatar.reload.user.nil?, "the previously associated object has not been disassociated yet"
   end
   
-  def test_assigning_a_removed_subscription
-    @user.subscription_params = {
+  def test_assigning_a_removed_avatar
+    @user.avatar_params = {
       "1" => {
-        :id => @subscription.id,
+        :id => @avatar.id,
         :name => "Bobtastic",
         :_delete => "1"
       }
     }
-    assert @user.subscription._delete, "the association is marked for deletion"
-    assert_nothing_raised("the associated object has not been deleted yet") do @subscription.reload end
-    assert_equal "Bob/Free", @user.subscription.name, "the association attribute did not update"
+    assert @user.avatar._delete, "the association is marked for deletion"
+    assert_nothing_raised("the associated object has not been deleted yet") do @avatar.reload end
+    assert_equal "mugshot", @user.avatar.name, "the association attribute did not update"
   end
 end
 
 class NestedAssignmentBelongsToTest < ActiveSupport::TestCase
   def setup
     @user = users(:bob)
-    @subscription = subscriptions(:bob_is_free)
+    @manager = managers(:sue)
   end
   
-  def test_updating_the_subscription_user
-    @subscription.user_params = {
+  def test_updating_the_manager
+    @user.manager_params = {
       "1" => {
-        :id => @user.id,
-        :name => "William"
+        :id => @manager.id,
+        :name => "Susan"
       }
     }
-    assert !@subscription.user.new_record?, "the association was not rebuilt"
-    assert_equal "William", @subscription.user.name, "the existing subscription's name has changed"
-    assert_equal "Bob", @user.reload.name, "the name change has not been saved"
+    assert !@user.manager.new_record?, "the association was not rebuilt"
+    assert_equal "Susan", @user.manager.name, "the existing associated record's name has changed"
+    assert_equal "Sue", @manager.reload.name, "the name change has not been saved"
   end
   
-  def test_assigning_a_replacement_user
-    @subscription.user_params = {
+  def test_assigning_a_replacement_manager
+    @user.manager_params = {
       "1" => {
-        :name => "William"
+        :name => "Susan"
       }
     }
-    assert @subscription.user.new_record?, "the association is a new object"
-    assert_equal "William", @subscription.user.name, "the new record has the specified name"
-    assert !@subscription.reload.user.nil?, "the previously associated object has not been disassociated yet"
+    assert @user.manager.new_record?, "the association is a new object"
+    assert_equal "Susan", @user.manager.name, "the new record has the specified name"
+    assert !@user.reload.manager.nil?, "the previously associated object has not been disassociated yet"
   end
   
-  def test_assigning_a_removed_user
-    @subscription.user_params = {
+  def test_assigning_a_removed_manager
+    @user.manager_params = {
       "1" => {
-        :id => @user.id,
-        :name => "William",
+        :id => @manager.id,
+        :name => "Susan",
         :_delete => "1"
       }
     }
-    assert @subscription.user._delete, "the association is marked for deletion"
-    assert_nothing_raised("the associated object has not been deleted yet") do @user.reload end
-    assert_equal "Bob", @subscription.user.name, "the association attribute did not update"
+    assert @user.manager._delete, "the association is marked for deletion"
+    assert_nothing_raised("the associated object has not been deleted yet") do @manager.reload end
+    assert_equal "Sue", @user.manager.name, "the association attribute did not update"
   end
 end
 
 class NestedAssignmentHasManyTest < ActiveSupport::TestCase
   def setup
-    @service = services(:free)
-    @subscription = subscriptions(:bob_is_free)
+    @user = users(:bob)
+    @task = tasks(:review)
   end
   
-  def test_adding_a_subscription
-    @service.subscriptions_params = {
+  def test_adding_a_task
+    @user.tasks_params = {
       "1" => {
-        :name => "Foo"
+        :name => "refactor"
       }
     }
-    assert @service.subscriptions.any?{|s| s.new_record?}, "a new record is added"
-    assert_equal "Foo", @service.subscriptions.detect{|s| s.new_record?}.name, "the new record has the specified attribute value"
+    assert @user.tasks.any?{|s| s.new_record?}, "a new record is added"
+    assert_equal "refactor", @user.tasks.detect{|s| s.new_record?}.name, "the new record has the specified attribute value"
   end
   
-  def test_missing_subscriptions_do_not_delete
-    @service.subscriptions_params = {
-      "1" => {:name => "Foo"}
+  def test_missing_tasks_do_not_delete
+    @user.tasks_params = {
+      "1" => {:name => "refactor"}
     }
-    assert @service.subscriptions.any?{|s| s == @subscription}, "existing records remain in the collection"
+    assert @user.tasks.any?{|s| s == @task}, "existing records remain in the collection"
   end
   
-  def test_updating_a_subscription
-    @service.subscriptions_params = {
+  def test_updating_a_task
+    @user.tasks_params = {
       "1" => {
-        :id => @subscription.id,
-        :name => "Foo"
+        :id => @task.id,
+        :name => "refactor"
       }
     }
-    assert !@service.subscriptions.any?{|s| s.new_record?}, "no new record is created"
-    assert_equal "Foo", @service.subscriptions.detect{|s| s == @subscription}.name, "the name is updated"
-    assert_equal "Bob/Free", @subscription.reload.name, "the name is not saved"
+    assert !@user.tasks.any?{|s| s.new_record?}, "no new record is created"
+    assert_equal "refactor", @user.tasks.detect{|s| s == @task}.name, "the name is updated"
+    assert_equal "review", @task.reload.name, "the name is not saved"
   end
   
-  def test_removing_a_subscription
-    @service.subscriptions_params = {
+  def test_removing_a_task
+    @user.tasks_params = {
       "1" => {
-        :id => @subscription.id,
-        :name => "Foo",
+        :id => @task.id,
+        :name => "refactor",
         :_delete => "1"
       }
     }
-    assert @service.subscriptions.detect{|s| s == @subscription}._delete, "the associated record is marked for deletion"
-    assert_equal "Bob/Free", @service.subscriptions.detect{|s| s == @subscription}.name, "the association attribute did not update"
+    assert @user.tasks.detect{|s| s == @task}._delete, "the associated record is marked for deletion"
+    assert_equal "review", @user.tasks.detect{|s| s == @task}.name, "the association attribute did not update"
   end
 end
 
 class NestedAssignmentHasAndBelongsToManyTest < ActiveSupport::TestCase
   def setup
     @user = users(:bob)
-    @role = roles(:cook)
+    @group = groups(:developers)
   end
   
-  def test_adding_a_role
-    @user.roles_params = {
+  def test_adding_a_group
+    @user.groups_params = {
       "1" => {
-        :name => "Foo"
+        :name => "designers"
       }
     }
-    assert @user.roles.any?{|r| r.new_record?}, "a new record is added"
-    assert_equal "Foo", @user.roles.detect{|r| r.new_record?}.name, "the new record has the specified attribute value"
+    assert @user.groups.any?{|r| r.new_record?}, "a new record is added"
+    assert_equal "designers", @user.groups.detect{|r| r.new_record?}.name, "the new record has the specified attribute value"
   end
   
-  def test_missing_roles_do_not_delete
-    @user.roles_params = {
-      "1" => {:name => "Foo"}
+  def test_missing_groups_do_not_delete
+    @user.groups_params = {
+      "1" => {:name => "designers"}
     }
-    assert @user.roles.any?{|r| r == @role}, "existing records remain in the collection"
+    assert @user.groups.any?{|r| r == @group}, "existing records remain in the collection"
   end
   
-  def test_updating_a_role
-    @user.roles_params = {
+  def test_updating_a_group
+    @user.groups_params = {
       "1" => {
-        :id => @role.id,
-        :name => "Foo"
+        :id => @group.id,
+        :name => "engineers"
       }
     }
-    assert !@user.roles.any?{|s| s.new_record?}, "no new record is created"
-    assert_equal "Foo", @user.roles.detect{|s| s == @role}.name, "the name is updated"
-    assert_equal "Cook", @role.reload.name, "the name is not saved"
+    assert !@user.groups.any?{|s| s.new_record?}, "no new record is created"
+    assert_equal "engineers", @user.groups.detect{|s| s == @group}.name, "the name is updated"
+    assert_equal "developers", @group.reload.name, "the name is not saved"
   end
   
-  def test_removing_a_role
-    @user.roles_params = {
+  def test_removing_a_group
+    @user.groups_params = {
       "1" => {
-        :id => @role.id,
-        :name => "Foo",
+        :id => @group.id,
+        :name => "engineers",
         :_delete => "1"
       }
     }
-    assert @user.roles.detect{|s| s == @role}._delete, "the associated record is marked for deletion"
-    assert_equal "Cook", @user.roles.detect{|s| s == @role}.name, "the association attribute did not update"
+    assert @user.groups.detect{|s| s == @group}._delete, "the associated record is marked for deletion"
+    assert_equal "developers", @user.groups.detect{|s| s == @group}.name, "the association attribute did not update"
   end
 end
 
 class NestedAssignmentHasManyThroughTest < ActiveSupport::TestCase
   def setup
     @user = users(:bob)
-    @service = services(:free)
+    @tag = tags(:challenging)
   end
   
-  def test_adding_a_service
-    @user.services_params = {
+  def test_adding_a_tag
+    @user.tags_params = {
       "1" => {
-        :name => "Foo"
+        :name => "easy"
       }
     }
-    assert @user.services.any?{|r| r.new_record?}, "a new record is added"
-    assert_equal "Foo", @user.services.detect{|r| r.new_record?}.name, "the new record has the specified attribute value"
+    assert @user.tags.any?{|r| r.new_record?}, "a new record is added"
+    assert_equal "easy", @user.tags.detect{|r| r.new_record?}.name, "the new record has the specified attribute value"
   end
   
-  def test_missing_services_do_not_delete
-    @user.services_params = {
-      "1" => {:name => "Foo"}
+  def test_missing_tags_do_not_delete
+    @user.tags_params = {
+      "1" => {:name => "easy"}
     }
-    assert @user.services.any?{|r| r == @service}, "existing records remain in the collection"
+    assert @user.tags.any?{|r| r == @tag}, "existing records remain in the collection"
   end
   
-  def test_updating_a_service
-    @user.services_params = {
+  def test_updating_a_tag
+    @user.tags_params = {
       "1" => {
-        :id => @service.id,
-        :name => "Foo"
+        :id => @tag.id,
+        :name => "difficult"
       }
     }
-    assert !@user.services.any?{|s| s.new_record?}, "no new record is created"
-    assert_equal "Foo", @user.services.detect{|s| s == @service}.name, "the name is updated"
-    assert_equal "Free", @service.reload.name, "the name is not saved"
+    assert !@user.tags.any?{|s| s.new_record?}, "no new record is created"
+    assert_equal "difficult", @user.tags.detect{|s| s == @tag}.name, "the name is updated"
+    assert_equal "challenging", @tag.reload.name, "the name is not saved"
   end
   
-  def test_removing_a_service
-    @user.services_params = {
+  def test_removing_a_tag
+    @user.tags_params = {
       "1" => {
-        :id => @service.id,
-        :name => "Foo",
+        :id => @tag.id,
+        :name => "difficult",
         :_delete => "1"
       }
     }
-    assert @user.services.detect{|s| s == @service}._delete, "the associated record is marked for deletion"
-    assert_equal "Free", @user.services.detect{|s| s == @service}.name, "the association attribute did not update"
+    assert @user.tags.detect{|s| s == @tag}._delete, "the associated record is marked for deletion"
+    assert_equal "challenging", @user.tags.detect{|s| s == @tag}.name, "the association attribute did not update"
   end
-end
-
-class NestedAssignmentHelperTest < ActiveSupport::TestCase
-  def test_association_names
-    assert_equal [:address, :roles, :services, :subscription], User.association_names.sort_by(&:to_s)
-  end
-
-  def test_instantiated_associated_does_not_load_associations
-    ActiveRecord::Associations::AssociationProxy.any_instance.expects(:loaded).never
-    user = User.find(:first)
-    assert_equal [], user.send(:instantiated_associated)
-  end
-  
-  def test_instantiated_associated_retrieves_loaded_associations
-    user = User.find(:first)
-    role = user.roles.build(:name => "Plumber")
-    assert_equal [role], user.send(:instantiated_associated), "only one role is instantiated"
-    assert_equal 2, user.roles.length, "though there were more associated roles"
-  end
-  
-  def test_instantiated_associated_returns_arrays_for_singular_association
-    user = User.find(:first)
-    assert !user.address.nil?
-    assert_equal [user.address], user.send(:instantiated_associated)
-  end
-  
-  def test_instantiated_associated_returns_arrays_for_plural_association
-    user = User.find(:first)
-    assert !user.roles.empty?
-    assert_equal user.roles, user.send(:instantiated_associated)
-  end
-  
 end
