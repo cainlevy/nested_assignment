@@ -1,7 +1,13 @@
 # NestedAssignment
 module NestedAssignment
   def self.included(base)
-    base.class_eval { extend ClassMethods }
+    base.class_eval do
+      extend ClassMethods
+      
+      alias_method_chain :save, :associated
+      alias_method_chain :valid?, :associated
+      alias_method_chain :changed?, :associated
+    end
   end
 
   module ClassMethods
@@ -12,7 +18,13 @@ module NestedAssignment
         define_method("#{name}_params=") do |hash|
           assoc = self.send(name)
           hash.values.each do |row|
-            record = row[:id].blank? ? assoc.build : assoc.select{|r| r.id == row[:id].to_i}
+            # TODO: need to bypass the replace() call inside singular associations (has_one and belongs_to). but they
+            # do serve a purpose: disassociating or destroying an existing record. if that is not to happen during
+            # assignment, then those records need to be collected for later disassociation (or removal, if :dependent
+            # => :destroy). that would need to be part of the saving process. ALSO, this makes sense to handle while
+            # deleting from plural associations. so perhaps instead of setting #_delete, i should add to a
+            # disassociation hash for later.
+            record = row[:id].blank? ? assoc.build : [assoc].flatten.detect{|r| r.id == row[:id].to_i}
             if row[:_delete]
               record._delete = true
             else
@@ -29,24 +41,28 @@ module NestedAssignment
     end
   end
   
-  # marks the record to be deleted in the next save
+  # marks the (associated) record to be deleted in the next deep save
   attr_accessor :_delete
   
   # deep validation of any changed (or new) records.
   # makes sure that any single invalid record will not halt the
   # validation process, so that all errors will be available
   # afterwards.
-  def valid?
-    [changed_associated.all?(&:valid?), super].all?
+  def valid_with_associated?
+    [changed_associated.all?(&:valid?), valid_without_associated?].all?
   end
   
   # deep saving of any new, changed, or deleted records.
-  def save
+  def save_with_associated
     self.class.transaction do
-      super
-      changed_associated.each(&:save)
-      deletable_associated.each(&:destroy)
+      changed_associated.all?(&:save) &&
+        deletable_associated.all?(&:destroy) &&
+        save_without_associated
     end
+  end
+  
+  def changed_with_associated?
+    changed_without_associated? or instantiated_associated.any?(&:changed?)
   end
   
   protected

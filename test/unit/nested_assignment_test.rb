@@ -2,8 +2,63 @@ require File.dirname(__FILE__) + '/../test_helper'
 
 require 'ruby-debug'
 
-class NestedAssignmentTest < ActiveSupport::TestCase
+class NestedAssignmentHasOneTest < ActiveSupport::TestCase
+  def setup
+    @user = users(:bob)
+    @subscription = subscriptions(:bob_is_free)
+  end
+  
+  def test_updating_a_subscription
+    @user.subscription_params = {
+      "1" => {
+        :id => @subscription.id,
+        :name => "Bobtastic"
+      }
+    }
+    assert !@user.subscription.new_record?, "the association was not rebuilt"
+    assert_equal "Bobtastic", @user.subscription.name, "the existing subscription's name has changed"
+    assert_equal "Bob/Free", @subscription.reload.name, "the name change has not been saved"
+  end
+  
+  def test_assigning_a_replacement_subscription
+    @user.subscription_params = {
+      "1" => {
+        :name => "Bobtastic"
+      }
+    }
+    assert @user.subscription.new_record?, "the association is a new object"
+    assert_equal "Bobtastic", @user.subscription.name, "the new record has the specified name"
+    assert !@subscription.reload.user_id.nil?, "the previously associated object has not been disassociated yet"
+  end
+  
+  def test_assigning_a_removed_subscription
+    @user.subscription_params = {
+      "1" => {
+        :id => @subscription.id,
+        :name => "Bobtastic",
+        :_delete => "1"
+      }
+    }
+    assert @user.subscription._delete, "the association is marked for deletion"
+    assert_nothing_raised("the associated object has not been deleted yet") do @subscription.reload end
+    assert_equal "Bob/Free", @user.subscription.name, "the association attribute did not update"
+  end
 
+end
+
+class NestedAssignmentBelongsToTest < ActiveSupport::TestCase
+end
+
+class NestedAssignmentHasManyTest < ActiveSupport::TestCase
+end
+
+class NestedAssignmentHasAndBelongsToManyTest < ActiveSupport::TestCase
+end
+
+class NestedAssignmentHasManyThroughTest < ActiveSupport::TestCase
+end
+
+class NestedAssignmentHelperTest < ActiveSupport::TestCase
   def test_association_names
     assert_equal [:address, :roles, :subscription], User.association_names.sort_by(&:to_s)
   end

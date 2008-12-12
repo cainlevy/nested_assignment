@@ -14,25 +14,37 @@ module PluginTestModels
 
   class Address < ActiveRecord::Base
     belongs_to :addressable, :polymorphic => true
+    
+    validates_presence_of :name
   end
 
   class User < ActiveRecord::Base
     has_and_belongs_to_many :roles
     has_one :subscription
     has_one :address, :as => :addressable
+    
+    accessible_associations :subscription
+    
+    validates_presence_of :name
   end
 
   class Service < ActiveRecord::Base
     has_many :subscriptions
     has_many :users, :through => :subscriptions
+    
+    validates_presence_of :name
   end
 
   class Subscription < ActiveRecord::Base
     belongs_to :service
     belongs_to :user
+    
+    validates_presence_of :name
   end
 
   class Role < ActiveRecord::Base
     has_and_belongs_to_many :users
+    
+    validates_presence_of :name
   end
 end

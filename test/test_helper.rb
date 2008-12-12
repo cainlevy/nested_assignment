@@ -6,6 +6,10 @@ require 'rubygems'
 require 'active_record'
 require 'active_record/fixtures'
 
+# load the code-to-be-tested
+ActiveSupport::Dependencies.load_paths << File.dirname(__FILE__) + '/../lib/'
+require File.dirname(__FILE__) + '/../init'
+
 # establish the database connection
 ActiveRecord::Base.configurations = YAML::load(IO.read(File.dirname(__FILE__) + '/db/database.yml'))
 ActiveRecord::Base.establish_connection('nested_assignment_test')
@@ -31,6 +35,3 @@ class ActiveSupport::TestCase
   fixtures :all
 end
 
-# load the code-to-be-tested
-ActiveSupport::Dependencies.load_paths << File.dirname(__FILE__) + '/../lib/'
-require File.dirname(__FILE__) + '/../init'
