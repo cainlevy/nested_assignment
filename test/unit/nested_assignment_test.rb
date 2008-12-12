@@ -22,6 +22,7 @@ class NestedAssignmentHasOneTest < ActiveSupport::TestCase
     }
     assert @user.avatar.new_record?, "the association is a new object"
     assert_equal "Bobtastic", @user.avatar.name, "the new record has the specified name"
+    # NOTE: see http://groups.google.com/group/rubyonrails-core/browse_thread/thread/18cf8b059f5ded4a
     assert !@avatar.reload.user.nil?, "the previously associated object has not been disassociated yet"
   end
   
