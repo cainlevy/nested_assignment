@@ -22,8 +22,9 @@ module PluginTestModels
     has_and_belongs_to_many :roles
     has_one :subscription
     has_one :address, :as => :addressable
+    has_many :services, :through => :subscription
     
-    accessible_associations :subscription
+    accessible_associations :subscription, :roles, :services
     
     validates_presence_of :name
   end
@@ -32,12 +33,16 @@ module PluginTestModels
     has_many :subscriptions
     has_many :users, :through => :subscriptions
     
+    accessible_associations :subscriptions
+    
     validates_presence_of :name
   end
 
   class Subscription < ActiveRecord::Base
     belongs_to :service
     belongs_to :user
+    
+    accessible_associations :user
     
     validates_presence_of :name
   end
