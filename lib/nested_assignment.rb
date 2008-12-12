@@ -71,6 +71,11 @@ module NestedAssignment
     end
   end
   
+  # Without this, we may not save deeply nested and changed records.
+  # For example, suppose that User -> Task -> Tags, and that we change
+  # an attribute on a tag but not on the task. Then when we are saving
+  # the user, we would want to say that the task had changed so we
+  # could then recurse and discover that the tag had changed.
   def changed_with_associated?
     changed_without_associated? or instantiated_associated.any?(&:changed?)
   end
