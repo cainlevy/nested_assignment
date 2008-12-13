@@ -21,23 +21,24 @@ module NestedAssignment
           define_method("#{name}_params=") do |row|
             assoc = self.send(name)
             
-            record = row[:id].blank? ? assoc.build : [assoc].detect{|r| r.id == row[:id].to_i}
-            if row[:_delete]
-              record._delete = true
+            if row[:_delete].to_s == "1"
+              [assoc].detect{|r| r.id == row[:id].to_i}._delete = true if row[:id]
             else
-              record.attributes = row
+              record = row[:id].blank? ? assoc.build : [assoc].detect{|r| r.id == row[:id].to_i}
+              record.attributes = row.except(:id, :_delete)
             end
           end
         # plural collections
         else
           define_method("#{name}_params=") do |hash|
             assoc = self.send(name)
+            
             hash.values.each do |row|
-              record = row[:id].blank? ? assoc.build : assoc.detect{|r| r.id == row[:id].to_i}
-              if row[:_delete]
-                record._delete = true
+              if row[:_delete].to_s == "1"
+                assoc.detect{|r| r.id == row[:id].to_i}._delete = true if row[:id]
               else
-                record.attributes = row
+                record = row[:id].blank? ? assoc.build : assoc.detect{|r| r.id == row[:id].to_i}
+                record.attributes = row.except(:id, :_delete)
               end
             end
           end

@@ -121,6 +121,16 @@ class NestedAssignmentHasManyTest < ActiveSupport::TestCase
     assert @user.tasks.detect{|s| s == @task}._delete, "the associated record is marked for deletion"
     assert_equal "review", @user.tasks.detect{|s| s == @task}.name, "the association attribute did not update"
   end
+  
+  def test_adding_a_deletable_task
+    @user.tasks_params = {
+      "1" => {
+        :name => "refactor",
+        :_delete => "1"
+      }
+    }
+    assert !@user.tasks.any?(&:new_record?), "the association wasn't even built"
+  end
 end
 
 class NestedAssignmentHasAndBelongsToManyTest < ActiveSupport::TestCase
