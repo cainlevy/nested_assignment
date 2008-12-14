@@ -69,12 +69,10 @@ module NestedAssignment
   
   # deep saving of any new, changed, or deleted records.
   def save_with_associated(*args)
-    without_recursion(:save) do
-      self.class.transaction do
-        save_without_associated(*args) &&
-          modified_associated.all?{|a| a.save} &&
-          deletable_associated.all?{|a| a.destroy}
-      end
+    self.class.transaction do
+      save_without_associated(*args) &&
+        without_recursion(:save){modified_associated.all?{|a| a.save}} &&
+        deletable_associated.all?{|a| a.destroy}
     end
   end
   
@@ -86,7 +84,7 @@ module NestedAssignment
   #
   # Unfortunately, this can also have a 2x performance penalty. 
   def changed_with_associated?
-    without_recursion(:save) do
+    without_recursion(:changed) do
       changed_without_associated? or changed_associated
     end
   end
