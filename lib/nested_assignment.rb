@@ -6,7 +6,7 @@ module NestedAssignment
     base.class_eval do
       extend ClassMethods
       
-      alias_method_chain :save, :associated
+      alias_method_chain :create_or_update, :associated
       alias_method_chain :valid?, :associated
 #      alias_method_chain :changed?, :associated
     end
@@ -68,10 +68,10 @@ module NestedAssignment
   end
   
   # deep saving of any new, changed, or deleted records.
-  def save_with_associated(*args)
+  def create_or_update_with_associated(*args)
     self.class.transaction do
-      save_without_associated(*args) &&
-        without_recursion(:save){modified_associated.all?{|a| a.save}} &&
+      create_or_update_without_associated(*args) &&
+        without_recursion(:create_or_update){modified_associated.all?{|a| a.save}} &&
         deletable_associated.all?{|a| a.destroy}
     end
   end

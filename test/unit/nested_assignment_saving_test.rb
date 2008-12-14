@@ -54,4 +54,11 @@ class NestedAssignmentSavingTest < ActiveSupport::TestCase
     assert_equal "william", @user.name
     assert_equal "research", @user.tasks[0].name
   end
+  
+  def test_saving!
+    @user = users(:bob)
+    @user.tasks[0].name = "research"
+    @user.save!
+    assert_equal "research", @user.reload.tasks[0].name
+  end
 end
