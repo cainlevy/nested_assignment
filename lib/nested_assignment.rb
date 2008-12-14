@@ -8,7 +8,7 @@ module NestedAssignment
       
       alias_method_chain :save, :associated
       alias_method_chain :valid?, :associated
-      alias_method_chain :changed?, :associated
+#      alias_method_chain :changed?, :associated
     end
   end
 
@@ -83,6 +83,8 @@ module NestedAssignment
   # an attribute on a tag but not on the task. Then when we are saving
   # the user, we would want to say that the task had changed so we
   # could then recurse and discover that the tag had changed.
+  #
+  # Unfortunately, this can also have a 2x performance penalty. 
   def changed_with_associated?
     without_recursion(:save) do
       changed_without_associated? or changed_associated
