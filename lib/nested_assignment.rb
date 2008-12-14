@@ -55,20 +55,20 @@ module NestedAssignment
   # marks the (associated) record to be deleted in the next deep save
   attr_accessor :_delete
   
-  # deep validation of any changed (or new) records.
+  # deep validation of any changed (existing) records.
   # makes sure that any single invalid record will not halt the
   # validation process, so that all errors will be available
   # afterwards.
-  def valid_with_associated?
-    [changed_associated.all?(&:valid?), valid_without_associated?].all?
+  def valid_with_associated?(*args)
+    [modified_associated.all?(&:valid?), valid_without_associated?(*args)].all?
   end
   
   # deep saving of any new, changed, or deleted records.
-  def save_with_associated
+  def save_with_associated(*args)
     self.class.transaction do
-      changed_associated.all?(&:save) &&
-        deletable_associated.all?(&:destroy) &&
-        save_without_associated
+      save_without_associated(*args) &&
+        modified_associated.all?{|a| a.save} &&
+        deletable_associated.all?{|a| a.destroy}
     end
   end
   
@@ -78,25 +78,36 @@ module NestedAssignment
   # the user, we would want to say that the task had changed so we
   # could then recurse and discover that the tag had changed.
   def changed_with_associated?
-    changed_without_associated? or instantiated_associated.any?(&:changed?)
+    changed_without_associated? or changed_associated
   end
   
   protected
   
   def deletable_associated
-    instantiated_associated.select(&:_delete)
+    instantiated_associated.select{|a| a._delete}
+  end
+
+  def modified_associated
+    instantiated_associated.select{|a| a.changed? and !a.new_record? and not a.id_changed?}
   end
 
   def changed_associated
-    instantiated_associated.select(&:changed?)
+    instantiated_associated.select{|a| a.changed?}
   end
 
   def instantiated_associated
-    self.class.association_names.collect do |name|
+    instantiated = []
+    self.class.association_names.each do |name|
       ivar = "@#{name}"
-      association = instance_variable_get(ivar) if instance_variable_defined?(ivar)
-      association && association.target
-    end.flatten.compact
+      if association = instance_variable_get(ivar)
+        if association.target.is_a?(Array)
+          instantiated.concat association.target
+        elsif association.target
+          instantiated << association.target
+        end
+      end
+    end
+    instantiated
   end
 
 end
