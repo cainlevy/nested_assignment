@@ -1,5 +1,7 @@
 # NestedAssignment
 module NestedAssignment
+  include RecursionControl
+
   def self.included(base)
     base.class_eval do
       extend ClassMethods
@@ -60,15 +62,19 @@ module NestedAssignment
   # validation process, so that all errors will be available
   # afterwards.
   def valid_with_associated?(*args)
-    [modified_associated.all?(&:valid?), valid_without_associated?(*args)].all?
+    without_recursion(:valid?) do
+      [modified_associated.all?(&:valid?), valid_without_associated?(*args)].all?
+    end
   end
   
   # deep saving of any new, changed, or deleted records.
   def save_with_associated(*args)
-    self.class.transaction do
-      save_without_associated(*args) &&
-        modified_associated.all?{|a| a.save} &&
-        deletable_associated.all?{|a| a.destroy}
+    without_recursion(:save) do
+      self.class.transaction do
+        save_without_associated(*args) &&
+          modified_associated.all?{|a| a.save} &&
+          deletable_associated.all?{|a| a.destroy}
+      end
     end
   end
   
@@ -78,7 +84,9 @@ module NestedAssignment
   # the user, we would want to say that the task had changed so we
   # could then recurse and discover that the tag had changed.
   def changed_with_associated?
-    changed_without_associated? or changed_associated
+    without_recursion(:save) do
+      changed_without_associated? or changed_associated
+    end
   end
   
   protected

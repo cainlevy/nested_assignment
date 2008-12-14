@@ -36,4 +36,22 @@ class NestedAssignmentSavingTest < ActiveSupport::TestCase
     end
     assert_equal "difficult", @user.reload.tasks[0].tags[0].name
   end
+  
+  def test_saving_with_recursive_references
+    # This recursive situation is a little contrived. A more likely example would be
+    # a new associated record that refers back to the first. For example, suppose you
+    # store events, and after the user modifies his name you wish to store the fact.
+    # You may do something like `Event.create(:user => self, :change => 'name')`. This
+    # would create a recursive reference such as here.
+    @user = users(:bob)
+    @user.name = "william"
+    @user.tasks[0].name = "research"
+    @user.tasks[0].user = @user
+    assert_nothing_raised do
+      @user.save
+    end
+    @user.reload
+    assert_equal "william", @user.name
+    assert_equal "research", @user.tasks[0].name
+  end
 end
