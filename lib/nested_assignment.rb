@@ -71,7 +71,7 @@ module NestedAssignment
   def create_or_update_with_associated(*args)
     self.class.transaction do
       create_or_update_without_associated(*args) &&
-        without_recursion(:create_or_update){modified_associated.all?{|a| a.save}} &&
+        without_recursion(:create_or_update){modified_associated.all?{|a| a.save(*args)}} &&
         deletable_associated.all?{|a| a.destroy}
     end
   end
