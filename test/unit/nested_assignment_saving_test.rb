@@ -37,28 +37,41 @@ class NestedAssignmentSavingTest < ActiveSupport::TestCase
     assert_equal "difficult", @user.reload.tasks[0].tags[0].name
   end
   
-  def test_saving_with_recursive_references
-    # This recursive situation is a little contrived. A more likely example would be
-    # a new associated record that refers back to the first. For example, suppose you
-    # store events, and after the user modifies his name you wish to store the fact.
-    # You may do something like `Event.create(:user => self, :change => 'name')`. This
-    # would create a recursive reference such as here.
-    @user = users(:bob)
-    @user.name = "william"
-    @user.tasks[0].name = "research"
-    @user.tasks[0].user = @user
-    assert_nothing_raised do
-      @user.save
-    end
-    @user.reload
-    assert_equal "william", @user.name
-    assert_equal "research", @user.tasks[0].name
-  end
-  
   def test_saving!
     @user = users(:bob)
     @user.tasks[0].name = "research"
     @user.save!
     assert_equal "research", @user.reload.tasks[0].name
+  end
+  
+  class UserWithEvent < User
+    after_save do |user|
+      PluginTestModels::Event.create(:entity => user)
+    end
+  end
+  
+  def test_saving_a_modified_record_that_spawns_an_associated_record
+    @user = UserWithEvent.find(:first)
+    @user.name = "william"
+    assert_difference "Event.count", 1 do
+      assert_nothing_raised do
+        @user.save
+      end
+    end
+    @user.reload
+    assert_equal "william", @user.name
+  end
+  
+  class UserWithResave < User
+    after_create do |user|
+      user.update_attribute(:name, "#{user.name} (verified)")
+    end
+  end
+  
+  def test_saving_a_new_record_with_a_single_resave
+    @user = UserWithResave.new
+    @user.name = "george"
+    @user.save
+    assert_equal "george (verified)", @user.reload.name
   end
 end

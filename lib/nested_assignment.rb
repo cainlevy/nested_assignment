@@ -69,11 +69,13 @@ module NestedAssignment
   
   # deep saving of any new, changed, or deleted records.
   def create_or_update_with_associated(*args)
+    without_recursion(:create_or_update){
     self.class.transaction do
       create_or_update_without_associated(*args) &&
-        without_recursion(:create_or_update){modified_associated.all?{|a| a.save(*args)}} &&
+        modified_associated.all?{|a| a.save(*args)} &&
         deletable_associated.all?{|a| a.destroy}
     end
+    }
   end
   
   # Without this, we may not save deeply nested and changed records.

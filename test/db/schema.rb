@@ -34,4 +34,9 @@ ActiveRecord::Schema.define(:version => 1) do
     t.column :user_id, :integer
   end
 
+  create_table :events, :force => true do |t|
+    t.column :entity_id, :integer
+    t.column :entity_type, :string
+    t.column :name, :string
+  end
 end

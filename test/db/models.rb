@@ -52,4 +52,8 @@ module PluginTestModels
     
     validates_presence_of :name
   end
+  
+  class Event < ActiveRecord::Base
+    belongs_to :entity, :polymorphic => true
+  end
 end
