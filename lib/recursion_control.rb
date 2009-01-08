@@ -21,7 +21,8 @@ module RecursionControl
     return default if RecursionControl.stack[method].include? self
     RecursionControl.stack[method] << self
     result = yield
+  ensure
     RecursionControl.stack[method].delete(self)
-    return result
+    result
   end
 end
